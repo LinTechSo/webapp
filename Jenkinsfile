@@ -1,10 +1,11 @@
 pipeline {
-    agent {label 'master'}
+    agent none
     tools {
         maven 'maven'
     }
     stages {
         stage ('initialize maven') {
+            agent {label 'master'}
             steps {
                 sh '''
                         echo "PATH = ${PATH}"
@@ -13,6 +14,7 @@ pipeline {
             }
         }
         stage ('Check-Git-Secrets') {
+            agent {label 'master'}
             steps {
                 sh 'rm trufflehog || true'
                 sh 'docker run gesellix/trufflehog --json https://github.com/lintechso/webapp.git > trufflehog'
@@ -20,6 +22,7 @@ pipeline {
             }
         }
         stage ('Source Composition Analysis') {
+            agent {label 'parham'}
             steps {
                 sh 'rm owasp* || true'
                 sh 'wget "https://raw.githubusercontent.com/lintechso/webapp/master/owasp-dependency-check.sh" '
@@ -30,6 +33,7 @@ pipeline {
             }
         }
         stage ('SAST') {
+            agent {label 'master'}
             steps {
                 withSonarQubeEnv('sonar') {
                     sh 'mvn sonar:sonar'
@@ -38,6 +42,7 @@ pipeline {
             }
         }
         stage ('Build'){
+            agent {label 'master'}
             steps {
                 sh 'mvn clean package'
             }
